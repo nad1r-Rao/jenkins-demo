@@ -2,9 +2,9 @@ pipeline {
   agent any
 
   environment {
-    IMAGE_NAME = "nadir468/jenkins-demo"
+    IMAGE_NAME     = "nadir468/jenkins-demo"
     DOCKERHUB_CRED = "dockerhub-creds"
-    APP_PORT = "3000"
+    APP_PORT       = "3000"
     CONTAINER_NAME = "jenkins-demo-app"
   }
 
@@ -16,8 +16,20 @@ pipeline {
     stage("Install & Test") {
       steps {
         sh '''
+          echo "== Jenkins workspace =="
+          pwd
+          ls -la
+
+          # Run Node inside a container; all commands run INSIDE the container
           docker run --rm -v "$PWD":/app -w /app node:20-alpine \
-            sh -lc "npm install && npm test"
+            sh -lc \'\
+              echo "== Inside container /app ==" && \
+              ls -la && \
+              test -f package.json || { echo "ERROR: package.json missing in /app"; exit 2; } && \
+              node -v && npm -v && \
+              npm install && \
+              npm test \
+            \'
         '''
       }
     }
