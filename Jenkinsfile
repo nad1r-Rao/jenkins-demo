@@ -1,4 +1,4 @@
-pipeline {
+﻿pipeline {
   agent any
 
   environment {
@@ -13,33 +13,22 @@ pipeline {
       steps { checkout scm }
     }
 
-    stage("Install & Test") {
+    // Build includes npm install (see Dockerfile), then run tests inside the built image
+    stage("Build & Test") {
       steps {
         sh '''
-          echo "== Jenkins workspace =="
-          pwd
-          ls -la
+          echo "== docker build (includes npm install) =="
+          docker build -t $IMAGE_NAME:$BUILD_NUMBER .
 
-          # Run Node inside a container; all commands run INSIDE the container
-          docker run --rm -v "$PWD":/app -w /app node:20-alpine \
-            sh -lc \'\
-              echo "== Inside container /app ==" && \
-              ls -la && \
-              test -f package.json || { echo "ERROR: package.json missing in /app"; exit 2; } && \
-              node -v && npm -v && \
-              npm install && \
-              npm test \
-            \'
+          echo "== run tests inside image =="
+          docker run --rm $IMAGE_NAME:$BUILD_NUMBER sh -lc "npm test"
         '''
       }
     }
 
-    stage("Build Image") {
+    stage("Tag Latest") {
       steps {
-        sh '''
-          docker build -t $IMAGE_NAME:$BUILD_NUMBER .
-          docker tag  $IMAGE_NAME:$BUILD_NUMBER $IMAGE_NAME:latest
-        '''
+        sh 'docker tag $IMAGE_NAME:$BUILD_NUMBER $IMAGE_NAME:latest'
       }
     }
 
