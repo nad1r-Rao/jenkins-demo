@@ -1,15 +1,17 @@
-﻿pipeline {
+pipeline {
   agent any
 
   environment {
-    IMAGE_NAME = "YOUR_DOCKERHUB_USERNAME/jenkins-demo"
+    IMAGE_NAME = "nadir468/jenkins-demo"
     DOCKERHUB_CRED = "dockerhub-creds"
     APP_PORT = "3000"
     CONTAINER_NAME = "jenkins-demo-app"
   }
 
   stages {
-    stage("Checkout") { steps { checkout scm } }
+    stage("Checkout") {
+      steps { checkout scm }
+    }
 
     stage("Install & Test") {
       steps {
@@ -55,7 +57,7 @@
 
   post {
     success {
-      echo "Deployed: http://$(hostname -I | awk '{print $1}'):${APP_PORT}"
+      echo "Deployed: http://localhost:${APP_PORT}"
     }
   }
 }
