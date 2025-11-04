@@ -17,7 +17,7 @@ pipeline {
       steps {
         sh '''
           docker run --rm -v "$PWD":/app -w /app node:20-alpine \
-            sh -lc "npm ci && npm test"
+            sh -lc "npm install && npm test"
         '''
       }
     }
